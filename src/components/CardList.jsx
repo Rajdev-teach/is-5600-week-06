@@ -1,54 +1,34 @@
 import Card from "./Card";
 import Button from "./Button";
 import Search from "./Search";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
+const CardList = ({ data }) => {
+  const limit = 10;
+  const [offset, setOffset] = useState(0);
+  const [tag, setTag] = useState("");
+  const filtered = tag
+    ? data.filter(product => product.tags.some(({ title }) => title.toLowerCase() === tag))
+    : data;
+  const products = filtered.slice(offset, offset + limit);
 
-
-const CardList = ({data}) => {
-
-const limit = 10;
-const defaultDataset = data.slice(0, limit);
-const [offset, setOffset] = useState(0);
-const [products, setProducts] = useState(defaultDataset);
-const handlePrevious = () => {
-  setOffset(offset - 10);
-}
-const handleNext = () => {
-  setOffset(offset + 10);
-}
-useEffect(() => {
-  setProducts(data.slice(offset, offset + limit));
-}, [offset, limit, data]);
-
-const filterTags = (tagQuery) =>{
-  const filtered = data.filter(product =>{
-    if(!tagQuery){
-      return product
-    }
-
-    return product.tags.find(({title})=> title === tagQuery)
-  })
-
-  setOffset(0)
-  setProducts(filtered.slice(0,limit))
-
-}
+  const filterTags = query => {
+    setTag(query.trim().toLowerCase());
+    setOffset(0);
+  };
 
   return (
     <div className="cf pa2">
-      <Search handleSearch={filterTags}/>
+      <Search handleSearch={filterTags} />
       <div className="mt2 mb2">
-        {products && products.map((product) => (
-          <Card key={product.id} {...product} />
-        ))}
+        {products.map(product => <Card key={product.id} {...product} />)}
       </div>
-      <div className="flex items-center justify-center pa4">   
-        <Button text="Previous" handleClick={() => setOffset(offset - 10)}/>
-        <Button text="Next" handleClick={() => setOffset(offset + 10)} />
+      <div className="flex items-center justify-center pa4">
+        <Button text="Previous" handleClick={() => setOffset(value => Math.max(0, value - limit))} />
+        <Button text="Next" handleClick={() => setOffset(value => value + limit < filtered.length ? value + limit : value)} />
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default CardList;
